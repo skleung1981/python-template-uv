@@ -12,9 +12,6 @@ pipeline {
         UV_NO_MODIFY_PATH     = "1"
         UV_INSECURE_HOST      = 'saturn:30088'
         PATH                  = "${UV_HOME}/bin:${PATH}"
-        NEXUS_READ            = credentials('nexus-cicd-admin-ro')
-        UV_INDEX_SATURN_NEXUS_VIA_INGRESS_USERNAME = "${NEXUS_READ_USR}"
-        UV_INDEX_SATURN_NEXUS_VIA_INGRESS_PASSWORD = "${NEXUS_READ_PSW}"
     }
 
     stages {
@@ -32,7 +29,11 @@ pipeline {
 
         stage('Sync') {
             steps {
-                sh 'uv sync --locked'
+                withCredentials([usernamePassword(credentialsId: 'nexus-cicd-admin-ro',
+                                                  usernameVariable: 'UV_INDEX_SATURN_NEXUS_VIA_INGRESS_USERNAME',
+                                                  passwordVariable: 'UV_INDEX_SATURN_NEXUS_VIA_INGRESS_PASSWORD')]) {
+                    sh 'uv sync --locked'
+                }
                 sh 'uv run python --version'
             }
         }
@@ -91,7 +92,12 @@ pipeline {
             steps {
                 script {
                     echo 'Uploading SBOM to Dependency Track...when it is a tag'
-                    withCredentials([string(credentialsId: 'DT_API_KEY', variable: 'DT_API_KEY')]) {
+                    withCredentials([
+                        string(credentialsId: 'DT_API_KEY', variable: 'DT_API_KEY'),
+                        usernamePassword(credentialsId: 'nexus-cicd-admin-ro',
+                                         usernameVariable: 'UV_INDEX_SATURN_NEXUS_VIA_INGRESS_USERNAME',
+                                         passwordVariable: 'UV_INDEX_SATURN_NEXUS_VIA_INGRESS_PASSWORD')
+                        ]) {
                         sh '''
                             UV_PROJECT_ENVIRONMENT=.venv-sbom uv sync --frozen --no-dev
 

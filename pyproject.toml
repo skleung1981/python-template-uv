@@ -1,0 +1,51 @@
+[project]
+name = "python-template-uv"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "skl", email = "skl@saturn" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "uk-weather-services==0.1.7",
+    "myskl-numpy-test==1.0.0"
+]
+
+[project.optional-dependencies]
+
+[project.scripts]
+python-template-uv = "python_template_uv.main:main"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.0",
+    "pytest>=9.1.1",
+    "ruff>=0.17.2"
+]
+
+[build-system]
+requires = ["uv_build>=0.13.0,<0.14.0"]
+build-backend = "uv_build"
+
+[tool.uv]
+
+# --- Private Nexus index -------------------------------------------------
+# Only uncomment if this project depends on private packages
+# (e.g. uk-weather-services). Do NOT enable for public projects:
+# anyone without access to saturn's Nexus will fail to install.
+#
+[[tool.uv.index]]
+name = "saturn-nexus-via-ingress"
+url = "https://saturn:30088/cicd/nexus/repository/saturn-python-group/simple"
+explicit = true
+
+[tool.uv.sources]
+uk-weather-services = { index = "saturn-nexus-via-ingress" }
+myskl-numpy-test = { index = "saturn-nexus-via-ingress" }
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
